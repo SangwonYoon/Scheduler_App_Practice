@@ -1,17 +1,16 @@
 package com.example.scheduler_practice
 
 import android.content.DialogInterface
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Gravity
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
-import android.widget.EditText
-import android.widget.GridLayout
-import android.widget.Spinner
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
-import org.w3c.dom.Text
+import androidx.core.view.MenuItemCompat
 
 class MainActivity : AppCompatActivity() {
 
@@ -21,7 +20,10 @@ class MainActivity : AppCompatActivity() {
         22 to SchedulerData(22, "시스템 소프트웨어", "윤상원", "미래관 4층 45호실"),
         28 to SchedulerData(28, "모바일 프로그래밍", "윤상원", "미래관 6층 11호실")
     )
-    //testData
+    var testData =  mutableMapOf(
+        2 to SchedulerData(2, "시스템 소프트웨어", "윤상원", "미래관 4층 45호실"),
+        16 to SchedulerData(16, "모바일 프로그래밍", "윤상원", "미래관 6층 11호실")
+    )
     var cells = mutableMapOf<Int, View>() // 스케줄러를 구성하는 각각의 셀을 모아놓는 Map
     lateinit var spinner: Spinner
 
@@ -38,7 +40,7 @@ class MainActivity : AppCompatActivity() {
         for (i : Int in 1 until grid.columnCount){
             val layout = createCell(500, 100, i,0, grid) // (i,0)위치에 500*100짜리 셀 생성
             val text = TextView(this) // 텍스트를 넣을 TextView 생성
-            text.textSize = 10f // 텍스트 사이즈 설정, 값이 float형이어야 함.
+            text.textSize = 12f // 텍스트 사이즈 설정, 값이 float형이어야 함.
             text.text = days[i] // days 배열에 들어있는 값을 가져다 TextView에 넣어줌
             text.gravity = Gravity.CENTER // gravity의 값을 center로 한다.
             text.layoutParams = ConstraintLayout.LayoutParams( // LayoutParams()의 생성자는 너비와 높이를 매개변수로 입력받는다.
@@ -51,9 +53,9 @@ class MainActivity : AppCompatActivity() {
         for (i : Int in 1 until grid.rowCount){
             val layout = createCell(100, 300, 0, i, grid) // (0,i) 위치에 100*300짜리 셀 생성
             val text = TextView(this)
-            text.textSize = 10f
+            text.textSize = 12f
             text.text =
-                if (i % 2 != 0) times[(i-1)/2] else times[(i-1)/2] + " 30분"
+                if (i % 2 != 0) times[(i-1)/2] else times[(i-1)/2] + "\n30분"
             text.gravity = Gravity.CENTER
             text.layoutParams = ConstraintLayout.LayoutParams(
                 ConstraintLayout.LayoutParams.MATCH_PARENT,
@@ -117,7 +119,29 @@ class MainActivity : AppCompatActivity() {
                         return@setOnLongClickListener true // setOnClickListener 메소드는 boolean형의 리턴값을 갖는다. 길게 누르고 있을 때 onLongclickListener가 작동하고 손가락을 떼는 순간 onClickListener가 작동한다. 이때 리턴값을 true로 해주면 onClickLisener가 작동하지 않고(이벤트 완료), false면 onClickLisener가 작동한다(다음 이벤트 계속 진행).
                     }
                 } else{
-                    
+                    layout.setOnClickListener{
+                        val view = layoutInflater.inflate(R.layout.dialog,null)
+                        val builder = AlertDialog.Builder(this@MainActivity)
+                        builder
+                            .setView(view)
+                            .setPositiveButton(
+                                "등록",
+                                DialogInterface.OnClickListener{dialog, index ->
+                                    schedulerData[idx] = SchedulerData( // 해당 셀의 일정 정보를 EditText에 입력된 내용으로 업데이트한다.
+                                        idx,
+                                        view.findViewById<EditText>(R.id.dialog_title).text.toString(),
+                                        view.findViewById<EditText>(R.id.dialog_user).text.toString(),
+                                        view.findViewById<EditText>(R.id.dialog_location).text.toString()
+                                    )
+                                    refreshCell(schedulerData)
+                                })
+                            .setNegativeButton(
+                                "취소",
+                                DialogInterface.OnClickListener{dialog, index ->
+                                    dialog.cancel()
+                                })
+                            .create().show()
+                    }
                 }
             }
         }
@@ -155,5 +179,52 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun compareData(data0: MutableMap<Int, SchedulerData>, data1: MutableMap<Int,SchedulerData>){ // 매개변수로 idx를 key로 하고 일정의 정보를 값으로 갖는 map 두개를 넘겨받는다.
+        val grid : GridLayout = findViewById(R.id.gridLayout)
+
+        for(i: Int in 1 until grid.rowCount){
+            for(j : Int in 1 until grid.columnCount){
+                val idx = ((i - 1) * (grid.columnCount - 1)) + (j - 1)
+                val cell : View? = cells[idx]
+                if(!data0.containsKey(idx) and !data1.containsKey(idx)){ // 해당 셀에 대한 일정 정보가 매개변수로 주어진 두개의 map 모두에 존재하지 않을때
+                    cell?.findViewById<TextView>(R.id.scheduler_item_title)?.text = "비는 시간" // 해당 셀이 비는 시간이라고 표시해 준다.
+                    cell?.findViewById<TextView>(R.id.scheduler_item_username)?.text = ""
+                    cell?.findViewById<TextView>(R.id.scheduler_item_location)?.text = ""
+                } else{
+                    cell?.findViewById<TextView>(R.id.scheduler_item_title)?.text = ""
+                    cell?.findViewById<TextView>(R.id.scheduler_item_username)?.text = ""
+                    cell?.findViewById<TextView>(R.id.scheduler_item_location)?.text = ""
+                }
+            }
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.android_action_bar_spinner_menu, menu) // 미리 만들어 놓은 메뉴를 객체화한다.
+        val item: MenuItem = menu.findItem(R.id.spinner)
+        spinner = MenuItemCompat.getActionView(item) as Spinner // Spinner는 여러개의 값중에서 하나를 선택할 수 있게 해주는 위젯
+        val adapter = ArrayAdapter<String>( // ArrayAdapter는 배열을 뷰에 연결하도록 도와주는 어댑터, 첫번째 매개변수: context, 두번째 매개변수: 배열의 각 항목을 어떻게 표시할 지 지정하는 레이아웃, 세번쨰 매개변수: 배열
+            this,
+            R.layout.support_simple_spinner_dropdown_item,
+            arrayOf("시간표 1","시간표 2", "시간표 대조")
+        )
+        adapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item) // dropdown의 레이아웃 지정
+        spinner.adapter = adapter
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{ // Spinner의 item이 클릭되었을 때 event를 정의해준다.
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+
+            }
+
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) { // 클릭된 item의 위치가 position 변수에 담겨서 전해진다.
+                when(position){ // when문은 다른 언어의 switch문과 동일하다
+                    0 -> refreshCell(schedulerData)
+                    1 -> refreshCell(testData)
+                    2 -> compareData(schedulerData, testData)
+                }
+            }
+        }
+        return true // return false 시 메뉴를 감출 수 있다.
     }
 }
