@@ -4,7 +4,9 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Programming/app_programming/Scheduler_App_Practice/app/src/main/res/drawable/border.xml" value="0.38229166666666664" />
-        <entry key="..\:/Programming/app_programming/Scheduler_App_Practice/app/src/main/res/layout/activity_main.xml" value="0.4016" />
+        <entry key="..\:/Programming/app_programming/Scheduler_App_Practice/app/src/main/res/layout/activity_main.xml" value="0.1" />
+        <entry key="..\:/Programming/app_programming/Scheduler_App_Practice/app/src/main/res/layout/dialog.xml" value="0.36614583333333334" />
+        <entry key="..\:/Programming/app_programming/Scheduler_App_Practice/app/src/main/res/layout/scheduler_item.xml" value="0.9" />
       </map>
     </option>
   </component>
