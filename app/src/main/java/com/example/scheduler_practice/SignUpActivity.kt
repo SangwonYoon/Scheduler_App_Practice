@@ -1,6 +1,7 @@
 package com.example.scheduler_practice
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -31,6 +32,7 @@ class SignUpActivity : AppCompatActivity() {
                 client.newCall(request).enqueue(object : Callback {
                     override fun onFailure(call: Call, e: IOException) {
                         runOnUiThread {
+                            Log.d("log",e.message.toString())
                             Toast.makeText(this@SignUpActivity, "회원가입 실패", Toast.LENGTH_SHORT)
                                 .show()
                         }
@@ -39,7 +41,6 @@ class SignUpActivity : AppCompatActivity() {
                     override fun onResponse(call: Call, response: Response) {
                         object : Thread() {
                             override fun run() {
-                                Toast.makeText(this@SignUpActivity, "회원가입 성공", Toast.LENGTH_SHORT).show()
                                 finish()
                             }
                         }.run()
